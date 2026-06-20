@@ -59,9 +59,9 @@ if (!divisionCode) {
 }
 
 // ------------------------------
-// 2. JSON API URL
+// 2. JSON API URL (YOUR REAL WEB APP URL)
 // ------------------------------
-const apiUrl = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnRMZLTsl9KlkaSjFcT8gwdYkbBPtp6xEx9s9e_eE1rnA7SK0DCQladZoKCQTU-OucN3FOHOH5fwUDFddn_DQibTLINLCIwL5jyM9jyNrppdBmJhMbkUB9nKUjbHHOPS9dy2MAA56X9OBRfGdttiXVv1bs2MI8g3mUFsXqqEqwOmOMGPoltAQLKyhHI6vmRNgR84V4nmg3IoZVNmp4EK-ZVr2l4-xNSM18ji7MFwh58vzJuGamvYYqKfAr5OJoLT3IkSe2UDVGad4XhbOU24FkOHJvm1dQ&lib=Mrm8dIJNiXzP34EixTwspNk46Et3bKFCz";
+const apiUrl = "https://script.google.com/macros/s/AKfycbwJuOUNgBRriM9c3JWZBAUcujOCl74Te7Zr7n0iWBdQ9cAd0K184VQxWLDNZ3_itPLYjw/exec";
 
 // ------------------------------
 // 3. Fetch JSON and render
@@ -129,6 +129,10 @@ fetch(apiUrl)
     html += `</div>`; // end bracket
 
     document.getElementById("content").innerHTML = html;
+  })
+  .catch(err => {
+    document.getElementById("content").innerHTML = "Error loading bracket.";
+    console.error(err);
   });
 
 // ------------------------------
