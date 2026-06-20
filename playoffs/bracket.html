@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Playoff Bracket</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .division-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .round-column {
+      display: inline-block;
+      vertical-align: top;
+      width: 30%;
+      margin-right: 2%;
+    }
+    .round-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .game-box {
+      background: white;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 6px solid #ccc;
+    }
+    .hola {
+      border-left-color: #f4c400;
+      background: #fff7c2;
+      font-weight: bold;
+    }
+    .label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div id="content">Loading bracket...</div>
+
+<script>
+// ------------------------------
+// 1. Read division from URL
+// ------------------------------
+const params = new URLSearchParams(window.location.search);
+const divisionCode = params.get("division");
+
+if (!divisionCode) {
+  document.getElementById("content").innerHTML = "No division specified.";
+  throw new Error("Missing ?division= parameter");
+}
+
+// ------------------------------
+// 2. JSON API URL
+// ------------------------------
+const apiUrl = "YOUR_JSON_URL_HERE";
+
+// ------------------------------
+// 3. Fetch JSON and render
+// ------------------------------
+fetch(apiUrl)
+  .then(res => res.json())
+  .then(data => {
+    const division = data[divisionCode];
+    if (!division) {
+      document.getElementById("content").innerHTML = "Division not found.";
+      return;
+    }
+
+    // Group games by round
+    const rounds = {
+      "QF": [],
+      "SF": [],
+      "Final": []
+    };
+
+    division.games.forEach(game => {
+      if (rounds[game.round]) {
+        rounds[game.round].push(game);
+      }
+    });
+
+    // Build HTML
+    let html = `
+      <div class="division-title">${division.name}</div>
+      <div class="bracket">
+    `;
+
+    // Quarterfinals (only if present)
+    if (rounds["QF"].length > 0) {
+      html += `<div class="round-column">
+        <div class="round-title">Quarterfinals</div>
+      `;
+      rounds["QF"].forEach(game => {
+        const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
+        html += renderGame(game, isHOLA);
+      });
+      html += `</div>`;
+    }
+
+    // Semifinals
+    html += `<div class="round-column">
+      <div class="round-title">Semifinals</div>
+    `;
+    rounds["SF"].forEach(game => {
+      const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
+      html += renderGame(game, isHOLA);
+    });
+    html += `</div>`;
+
+    // Final
+    html += `<div class="round-column">
+      <div class="round-title">Final</div>
+    `;
+    rounds["Final"].forEach(game => {
+      const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
+      html += renderGame(game, isHOLA);
+    });
+    html += `</div>`;
+
+    html += `</div>`; // end bracket
+
+    document.getElementById("content").innerHTML = html;
+  });
+
+// ------------------------------
+// 4. Game box renderer
+// ------------------------------
+function renderGame(game, isHOLA) {
+  return `
+    <div class="game-box ${isHOLA ? "hola" : ""}">
+      <div><span class="label">Round:</span> ${game.round}</div>
+      <div><span class="label">Game #:</span> ${game.game}</div>
+      <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
+      <div><span class="label">Date:</span> ${game.date}</div>
+      <div><span class="label">Time:</span> ${game.time}</div>
+      <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
+      <div><span class="label">Next:</span> ${game.next || "Final"}</div>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
