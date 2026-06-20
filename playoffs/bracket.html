@@ -3,45 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <title>Playoff Bracket</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       background: #f5f5f5;
     }
+
     .division-title {
       font-size: 28px;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      text-align: center;
     }
+
+    .bracket {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+    }
+
     .round-column {
-      display: inline-block;
-      vertical-align: top;
-      width: 30%;
-      margin-right: 2%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 260px;
+      position: relative;
     }
+
     .round-title {
       font-size: 20px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      text-align: center;
     }
+
     .game-box {
       background: white;
       padding: 12px;
-      margin-bottom: 12px;
+      margin: 20px 0;
       border-radius: 6px;
       border-left: 6px solid #ccc;
+      width: 100%;
+      position: relative;
     }
+
     .hola {
       border-left-color: #f4c400;
       background: #fff7c2;
       font-weight: bold;
     }
+
     .label {
       font-weight: bold;
     }
+
+    /* Horizontal connector line */
+    .connector {
+      width: 40px;
+      height: 2px;
+      background: #999;
+      position: absolute;
+      top: 50%;
+      right: -40px;
+    }
+
+    /* Mobile stacking */
+    @media (max-width: 900px) {
+      .bracket {
+        flex-direction: column;
+        align-items: center;
+      }
+      .connector {
+        display: none;
+      }
+    }
   </style>
 </head>
+
 <body>
 
 <div id="content">Loading bracket...</div>
@@ -76,11 +116,7 @@ fetch(apiUrl)
     }
 
     // Group games by round
-    const rounds = {
-      "QF": [],
-      "SF": [],
-      "Final": []
-    };
+    const rounds = { "QF": [], "SF": [], "Final": [] };
 
     division.games.forEach(game => {
       if (rounds[game.round]) {
@@ -94,14 +130,19 @@ fetch(apiUrl)
       <div class="bracket">
     `;
 
-    // Quarterfinals (only if present)
+    // Quarterfinals
     if (rounds["QF"].length > 0) {
       html += `<div class="round-column">
         <div class="round-title">Quarterfinals</div>
       `;
       rounds["QF"].forEach(game => {
         const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-        html += renderGame(game, isHOLA);
+        html += `
+          <div class="game-box ${isHOLA ? "hola" : ""}">
+            ${renderGame(game)}
+            <div class="connector"></div>
+          </div>
+        `;
       });
       html += `</div>`;
     }
@@ -112,7 +153,12 @@ fetch(apiUrl)
     `;
     rounds["SF"].forEach(game => {
       const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-      html += renderGame(game, isHOLA);
+      html += `
+        <div class="game-box ${isHOLA ? "hola" : ""}">
+          ${renderGame(game)}
+          <div class="connector"></div>
+        </div>
+      `;
     });
     html += `</div>`;
 
@@ -122,11 +168,13 @@ fetch(apiUrl)
     `;
     rounds["Final"].forEach(game => {
       const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-      html += renderGame(game, isHOLA);
+      html += `
+        <div class="game-box ${isHOLA ? "hola" : ""}">
+          ${renderGame(game)}
+        </div>
+      `;
     });
-    html += `</div>`;
-
-    html += `</div>`; // end bracket
+    html += `</div></div>`; // end bracket
 
     document.getElementById("content").innerHTML = html;
   })
@@ -138,17 +186,14 @@ fetch(apiUrl)
 // ------------------------------
 // 4. Game box renderer
 // ------------------------------
-function renderGame(game, isHOLA) {
+function renderGame(game) {
   return `
-    <div class="game-box ${isHOLA ? "hola" : ""}">
-      <div><span class="label">Round:</span> ${game.round}</div>
-      <div><span class="label">Game #:</span> ${game.game}</div>
-      <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
-      <div><span class="label">Date:</span> ${game.date}</div>
-      <div><span class="label">Time:</span> ${game.time}</div>
-      <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
-      <div><span class="label">Next:</span> ${game.next || "Final"}</div>
-    </div>
+    <div><span class="label">Game #:</span> ${game.game}</div>
+    <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
+    <div><span class="label">Date:</span> ${game.date}</div>
+    <div><span class="label">Time:</span> ${game.time}</div>
+    <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
+    <div><span class="label">Next:</span> ${game.next || "Final"}</div>
   `;
 }
 </script>
