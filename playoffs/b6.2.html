@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>B6.2 Playoff Bracket</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .division-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .game-box {
+      background: white;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border-left: 6px solid #ccc;
+    }
+    .hola {
+      border-left-color: #f4c400;
+      background: #fff7c2;
+      font-weight: bold;
+    }
+    .label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div id="content">Loading bracket...</div>
+
+<script>
+const divisionCode = "B6.2"; // This page is for B6.2
+const apiUrl = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnRMZLTsl9KlkaSjFcT8gwdYkbBPtp6xEx9s9e_eE1rnA7SK0DCQladZoKCQTU-OucN3FOHOH5fwUDFddn_DQibTLINLCIwL5jyM9jyNrppdBmJhMbkUB9nKUjbHHOPS9dy2MAA56X9OBRfGdttiXVv1bs2MI8g3mUFsXqqEqwOmOMGPoltAQLKyhHI6vmRNgR84V4nmg3IoZVNmp4EK-ZVr2l4-xNSM18ji7MFwh58vzJuGamvYYqKfAr5OJoLT3IkSe2UDVGad4XhbOU24FkOHJvm1dQ&lib=Mrm8dIJNiXzP34EixTwspNk46Et3bKFCz";
+
+fetch(apiUrl)
+  .then(res => res.json())
+  .then(data => {
+    const division = data[divisionCode];
+    if (!division) {
+      document.getElementById("content").innerHTML = "Division not found.";
+      return;
+    }
+
+    let html = `
+      <div class="division-title">${division.name}</div>
+    `;
+
+    division.games.forEach(game => {
+      const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
+
+      html += `
+        <div class="game-box ${isHOLA ? "hola" : ""}">
+          <div><span class="label">Round:</span> ${game.round}</div>
+          <div><span class="label">Match:</span> ${game.match}</div>
+          <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
+          <div><span class="label">Date:</span> ${game.date}</div>
+          <div><span class="label">Time:</span> ${game.time}</div>
+          <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
+          <div><span class="label">Next:</span> ${game.next || "Final"}</div>
+        </div>
+      `;
+    });
+
+    document.getElementById("content").innerHTML = html;
+  });
+</script>
+
+</body>
+</html>
