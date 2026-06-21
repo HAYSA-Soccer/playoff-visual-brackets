@@ -229,15 +229,9 @@
     }
 
     @keyframes shimmer {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .bracket-inner {
@@ -250,21 +244,12 @@
       opacity: 1;
     }
 
-    /* Small helper */
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     @media (max-width: 768px) {
-      .page-shell {
-        padding: 12px 8px 32px;
-      }
-      .page-title {
-        font-size: 1.4rem;
-      }
-      .bracket-container {
-        min-height: 220px;
-      }
+      .page-shell { padding: 12px 8px 32px; }
+      .page-title { font-size: 1.4rem; }
+      .bracket-container { min-height: 220px; }
     }
   </style>
 
@@ -281,15 +266,12 @@
     let loadedDivisions = new Set();
 
     function parseDivisionCode(code) {
-      // Example codes: G12.1, B10.2, G8.3, B6.2, G4.1
       const genderChar = code.charAt(0);
-      const rest = code.slice(1); // e.g. "12.1"
+      const rest = code.slice(1);
       const parts = rest.split(".");
-      const gradeNum = parseInt(parts[0], 10); // 4, 6, 8, 10, 12
+      const gradeNum = parseInt(parts[0], 10);
       const divNum = parts[1] ? parseInt(parts[1], 10) : 1;
 
-      // Map gradeNum to band (older → younger)
-      // 12 -> HS, 10 -> 9/10, 8 -> 7/8, 6 -> 5/6, 4 -> 3/4, 2 -> 1/2
       let bandOrder = 999;
       if (gradeNum >= 12) bandOrder = 1;
       else if (gradeNum >= 10) bandOrder = 2;
@@ -327,7 +309,6 @@
       const res = await fetch(API_URL);
       const data = await res.json();
 
-      // Expect data to be an array of rows with Division field
       const unique = new Map();
       data.forEach(row => {
         if (!row.Division) return;
@@ -340,7 +321,7 @@
       divisions = Array.from(unique.values()).sort((a, b) => {
         if (a.bandOrder !== b.bandOrder) return a.bandOrder - b.bandOrder;
         if (a.genderOrder !== b.genderOrder) return a.genderOrder - b.genderOrder;
-        if (b.gradeNum !== a.gradeNum) return b.gradeNum - a.gradeNum; // older first within band
+        if (b.gradeNum !== a.gradeNum) return b.gradeNum - a.gradeNum;
         if (a.divNum !== b.divNum) return a.divNum - b.divNum;
         return a.code.localeCompare(b.code);
       });
@@ -470,7 +451,6 @@
         const res = await fetch(`${API_URL}?division=${encodeURIComponent(code)}`);
         const data = await res.json();
 
-        // Use bracket engine to render into inner
         window.HAYSA_BRACKET_ENGINE.renderBracket(inner, data, {
           divisionCode: code,
           theme: {
@@ -517,7 +497,7 @@
         entries => {
           entries.forEach(entry => {
             if (!entry.isIntersecting) return;
-            const id = entry.target.id; // division-G10.2
+            const id = entry.target.id;
             const code = id.replace("division-", "");
             Object.values(navPills).forEach(p => p.classList.remove("active"));
             if (navPills[code]) navPills[code].classList.add("active");
@@ -540,30 +520,4 @@
       await fetchAllDivisions();
       buildNav();
       buildSections();
-      setupIntersectionObserver();
-      setupActiveNavHighlight();
-
-      // Immediately load the first (oldest) division
-      if (divisions[0]) {
-        loadBracketForDivision(divisions[0].code);
-      }
-    });
-  </script>
-</head>
-<body>
-  <div class="page-shell">
-    <header>
-      <h1 class="page-title">HAYSA Playoff Brackets</h1>
-      <p class="page-subtitle">
-        All divisions, oldest to youngest — live, dynamic, and HAYSA‑branded.
-      </p>
-    </header>
-
-    <div class="division-nav-wrapper">
-      <div id="division-nav" class="division-nav"></div>
-    </div>
-
-    <main id="division-sections"></main>
-  </div>
-</body>
-</html>
+      setup
