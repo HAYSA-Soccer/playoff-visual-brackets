@@ -17,12 +17,8 @@
       --hay-card-bg: #111827;
       --hay-border-soft: #1F2937;
     }
- 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -71,14 +67,8 @@
       scrollbar-width: thin;
     }
 
-    .division-nav::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .division-nav::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-    }
-
+    .division-nav::-webkit-scrollbar { height: 6px; }
+    .division-nav::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
     .division-nav::-webkit-scrollbar-thumb {
       background: rgba(244, 122, 32, 0.7);
       border-radius: 999px;
@@ -100,20 +90,9 @@
       transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
     }
 
-    .division-pill span.grade {
-      font-weight: 600;
-      color: var(--hay-orange);
-    }
-
-    .division-pill span.gender {
-      font-weight: 500;
-      color: var(--hay-text-muted);
-    }
-
-    .division-pill span.code {
-      font-weight: 600;
-      color: var(--hay-text-light);
-    }
+    .division-pill span.grade { font-weight: 600; color: var(--hay-orange); }
+    .division-pill span.gender { font-weight: 500; color: var(--hay-text-muted); }
+    .division-pill span.code { font-weight: 600; color: var(--hay-text-light); }
 
     .division-pill:hover {
       background: rgba(31, 41, 55, 0.95);
@@ -128,10 +107,7 @@
     }
 
     /* Division sections */
-    .division-section {
-      margin-top: 24px;
-      padding-top: 8px;
-    }
+    .division-section { margin-top: 24px; padding-top: 8px; }
 
     .division-header {
       display: flex;
@@ -174,9 +150,7 @@
       margin-top: 6px;
     }
 
-    .back-to-top:hover {
-      text-decoration: underline;
-    }
+    .back-to-top:hover { text-decoration: underline; }
 
     /* Bracket container + skeleton */
     .bracket-container {
@@ -211,22 +185,14 @@
       padding: 12px;
     }
 
-    .skeleton-row {
-      display: flex;
-      gap: 8px;
-      flex: 1;
-    }
-
+    .skeleton-row { display: flex; gap: 8px; flex: 1; }
     .skeleton-card {
       flex: 1;
       border-radius: 10px;
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(31, 41, 55, 0.9);
     }
-
-    .skeleton-card.small {
-      flex: 0.7;
-    }
+    .skeleton-card.small { flex: 0.7; }
 
     @keyframes shimmer {
       0% { background-position: 0% 50%; }
@@ -240,9 +206,7 @@
       transition: opacity 0.25s ease-out;
     }
 
-    .bracket-container.loaded .bracket-inner {
-      opacity: 1;
-    }
+    .bracket-container.loaded .bracket-inner { opacity: 1; }
 
     .hidden { display: none !important; }
 
@@ -253,7 +217,7 @@
     }
   </style>
 
-  <!-- Bracket engine -->
+  <!-- Bracket engine (correct path for root index.html) -->
   <script src="playoffs/bracket-engine.js" defer></script>
 
   <!-- Master page logic -->
@@ -520,4 +484,30 @@
       await fetchAllDivisions();
       buildNav();
       buildSections();
-      setup
+      setupIntersectionObserver();
+      setupActiveNavHighlight();
+
+      if (divisions[0]) {
+        loadBracketForDivision(divisions[0].code);
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header>
+      <h1 class="page-title">HAYSA Playoff Brackets</h1>
+      <p class="page-subtitle">
+        All divisions, oldest to youngest — live, dynamic, and HAYSA‑branded.
+      </p>
+    </header>
+
+        <div class="division-nav-wrapper">
+      <div id="division-nav" class="division-nav"></div>
+    </div>
+
+    <main id="division-sections"></main>
+  </div>
+</body>
+</html>
