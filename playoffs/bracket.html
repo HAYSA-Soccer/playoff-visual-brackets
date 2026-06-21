@@ -3,189 +3,285 @@
 <head>
   <meta charset="UTF-8">
   <title>Playoff Bracket</title>
-
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f5f5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #f4f5f7;
+      color: #222;
     }
 
     .division-title {
       font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 30px;
+      font-weight: 600;
       text-align: center;
+      margin-bottom: 24px;
     }
 
-    .bracket {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
+    .bracket-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      padding: 24px;
+    }
+
+    .bracket-grid {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(220px, 1fr);
+      gap: 32px;
+      align-items: start;
     }
 
     .round-column {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-width: 260px;
-      position: relative;
+      gap: 16px;
     }
 
     .round-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 15px;
+      font-size: 18px;
+      font-weight: 600;
       text-align: center;
-    }
-
-    .game-box {
-      background: white;
-      padding: 12px;
-      margin: 20px 0;
-      border-radius: 6px;
-      border-left: 6px solid #ccc;
-      width: 100%;
-      position: relative;
-    }
-
-    .hola {
-      border-left-color: #f4c400;
-      background: #fff7c2;
-      font-weight: bold;
-    }
-
-    .label {
-      font-weight: bold;
-    }
-
-    .feeds-from {
-      margin-top: 8px;
-      font-size: 12px;
+      margin-bottom: 8px;
       color: #555;
     }
 
+    .game-box {
+      border-radius: 10px;
+      border: 1px solid #d0d4dc;
+      background: #ffffff;
+      padding: 10px 12px;
+      font-size: 13px;
+      position: relative;
+    }
+
+    .game-box.hola {
+      border: 1px solid #f4c400;
+      background: linear-gradient(135deg, #fff9d9, #fff3b0);
+      box-shadow: 0 4px 12px rgba(244, 196, 0, 0.35);
+      padding: 14px 16px;
+    }
+
+    .hola-tag {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #f4c400;
+      color: #222;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .game-id {
+      font-weight: 600;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .teams-line {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .date-line {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .details {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .details div {
+      margin-bottom: 2px;
+    }
+
+    .feeds-from {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #555;
+      border-top: 1px dashed rgba(0,0,0,0.15);
+      padding-top: 4px;
+    }
+
     .feeds-from span {
-      font-weight: bold;
+      font-weight: 600;
     }
 
     @media (max-width: 900px) {
-      .bracket {
-        flex-direction: column;
-        align-items: center;
+      .bracket-grid {
+        grid-auto-flow: row;
+        grid-auto-columns: 1fr;
       }
     }
   </style>
 </head>
-
 <body>
 
 <div id="content">Loading bracket...</div>
 
 <script>
-// 1. Read division from URL
 const params = new URLSearchParams(window.location.search);
 const divisionCode = params.get("division");
 
 if (!divisionCode) {
   document.getElementById("content").innerHTML = "No division specified.";
-  throw new Error("Missing ?division= parameter");
+} else {
+  const apiUrl = "https://script.google.com/macros/s/AKfycbwJuOUNgBRriM9c3JWZBAUcujOCl74Te7Zr7n0iWBdQ9cAd0K184VQxWLDNZ3_itPLYjw/exec";
+
+  fetch(apiUrl)
+    .then(res => res.json())
+    .then(data => renderBracket(data))
+    .catch(err => {
+      console.error(err);
+      document.getElementById("content").innerHTML = "Error loading bracket.";
+    });
 }
 
-// 2. JSON API URL
-const apiUrl = "https://script.google.com/macros/s/AKfycbwJuOUNgBRriM9c3JWZBAUcujOCl74Te7Zr7n0iWBdQ9cAd0K184VQxWLDNZ3_itPLYjw/exec";
+function renderBracket(data) {
+  const division = data[divisionCode];
+  if (!division) {
+    document.getElementById("content").innerHTML = "Division not found.";
+    return;
+  }
 
-// 3. Fetch JSON and render
-fetch(apiUrl)
-  .then(res => res.json())
-  .then(data => {
-    const division = data[divisionCode];
-    if (!division) {
-      document.getElementById("content").innerHTML = "Division not found.";
-      return;
-    }
+  const games = division.games || [];
 
-    // Index games by ID and group by round
-    const gamesById = {};
-    const rounds = { "QF": [], "SF": [], "Final": [] };
+  // Normalize rounds into an ordered set
+  const roundOrder = ["Play-in", "QF", "SF", "Final"];
+  const roundGroups = {};
+  roundOrder.forEach(r => roundGroups[r] = []);
 
-    division.games.forEach(game => {
-      gamesById[game.game] = game;
-      if (rounds[game.round]) {
-        rounds[game.round].push(game);
-      }
-    });
-
-    // Helper: find feeder games for a given game ID
-    function findFeeders(targetId) {
-      return division.games.filter(g => g.next === targetId);
-    }
-
-    let html = `
-      <div class="division-title">${division.name}</div>
-      <div class="bracket">
-    `;
-
-    // Quarterfinals
-    if (rounds["QF"].length > 0) {
-      html += `<div class="round-column">
-        <div class="round-title">Quarterfinals</div>
-      `;
-      rounds["QF"].forEach(game => {
-        const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-        html += renderGameBox(game, isHOLA);
-      });
-      html += `</div>`;
-    }
-
-    // Semifinals (with feeders from QF)
-    html += `<div class="round-column">
-      <div class="round-title">Semifinals</div>
-    `;
-    rounds["SF"].forEach(sfGame => {
-      const isHOLA = sfGame.teamA.includes("HOLA") || sfGame.teamB.includes("HOLA");
-      const feeders = findFeeders(sfGame.game); // QFs that feed this SF
-      html += renderGameBox(sfGame, isHOLA, feeders);
-    });
-    html += `</div>`;
-
-    // Final (with feeders from SF)
-    html += `<div class="round-column">
-      <div class="round-title">Final</div>
-    `;
-    rounds["Final"].forEach(finalGame => {
-      const isHOLA = finalGame.teamA.includes("HOLA") || finalGame.teamB.includes("HOLA");
-      const feeders = findFeeders(finalGame.game); // SFs that feed this Final
-      html += renderGameBox(finalGame, isHOLA, feeders);
-    });
-    html += `</div></div>`; // end bracket
-
-    document.getElementById("content").innerHTML = html;
-  })
-  .catch(err => {
-    document.getElementById("content").innerHTML = "Error loading bracket.";
-    console.error(err);
+  games.forEach(g => {
+    const r = normalizeRound(g.round);
+    if (!roundGroups[r]) roundGroups[r] = [];
+    roundGroups[r].push(g);
   });
 
-// 4. Render a single game box, with optional feeders
-function renderGameBox(game, isHOLA, feeders = []) {
-  const feederText = feeders.length
+  // Build feeders map: nextId -> [games that feed it]
+  const feedersMap = {};
+  games.forEach(g => {
+    if (g.next) {
+      if (!feedersMap[g.next]) feedersMap[g.next] = [];
+      feedersMap[g.next].push(g);
+    }
+  });
+
+  let html = `
+    <div class="bracket-wrapper">
+      <div class="division-title">${division.name}</div>
+      <div class="bracket-grid">
+  `;
+
+  roundOrder.forEach(roundKey => {
+    const roundGames = roundGroups[roundKey] || [];
+    if (roundGames.length === 0) return;
+
+    html += `<div class="round-column">
+      <div class="round-title">${roundLabel(roundKey)}</div>
+    `;
+
+    roundGames.forEach(game => {
+      const feeders = feedersMap[game.game] || [];
+      html += renderGameBox(game, feeders);
+    });
+
+    html += `</div>`;
+  });
+
+  html += `</div></div>`;
+  document.getElementById("content").innerHTML = html;
+}
+
+function normalizeRound(raw) {
+  if (!raw) return "Play-in";
+  const r = String(raw).toLowerCase();
+
+  if (r.includes("play")) return "Play-in";
+  if (r.includes("quarter")) return "QF";
+  if (r === "qf" || r === "q") return "QF";
+  if (r.includes("semi")) return "SF";
+  if (r === "sf" || r === "s") return "SF";
+  if (r.includes("final")) return "Final";
+  if (r === "f") return "Final";
+
+  return "Play-in";
+}
+
+function roundLabel(key) {
+  switch (key) {
+    case "Play-in": return "Play-in";
+    case "QF": return "Quarterfinals";
+    case "SF": return "Semifinals";
+    case "Final": return "Final";
+    default: return key;
+  }
+}
+
+function renderGameBox(game, feeders) {
+  const isHOLA =
+    (game.teamA && game.teamA.toUpperCase().includes("HOLA")) ||
+    (game.teamB && game.teamB.toUpperCase().includes("HOLA"));
+
+  const dateText = formatDate(game.date);
+  const timeText = game.time && game.time !== "-" ? game.time : "";
+  const town = game.town || "";
+  const complex = game.complex || "";
+  const field = game.field || "";
+
+  const feedersText = feeders.length
     ? `<div class="feeds-from">
          <span>Feeds from:</span> ${feeders.map(f => f.game).join(", ")}
        </div>`
     : "";
 
-  return `
-    <div class="game-box ${isHOLA ? "hola" : ""}">
-      <div><span class="label">Game #:</span> ${game.game}</div>
-      <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
-      <div><span class="label">Date:</span> ${game.date}</div>
-      <div><span class="label">Time:</span> ${game.time}</div>
-      <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
-      <div><span class="label">Next:</span> ${game.next || "End of bracket"}</div>
-      ${feederText}
-    </div>
-  `;
+  if (isHOLA) {
+    return `
+      <div class="game-box hola">
+        <div class="hola-tag">HOLA Match</div>
+        <div class="game-id">Game ${game.game}</div>
+        <div class="teams-line">${safe(game.teamA)} vs ${safe(game.teamB)}</div>
+        <div class="date-line">
+          ${dateText}${timeText ? " • " + timeText : ""}
+        </div>
+        <div class="details">
+          ${town || complex || field ? `<div><strong>Location:</strong> ${[town, complex, field].filter(Boolean).join(" – ")}</div>` : ""}
+          ${game.round ? `<div><strong>Round:</strong> ${game.round}</div>` : ""}
+          ${game.next ? `<div><strong>Next:</strong> ${game.next}</div>` : `<div><strong>Next:</strong> End of bracket</div>`}
+        </div>
+        ${feedersText}
+      </div>
+    `;
+  } else {
+    return `
+      <div class="game-box">
+        <div class="game-id">Game ${game.game}</div>
+        <div class="teams-line">${safe(game.teamA)} vs ${safe(game.teamB)}</div>
+        ${dateText ? `<div class="date-line">${dateText}</div>` : ""}
+        ${feedersText}
+      </div>
+    `;
+  }
+}
+
+function formatDate(raw) {
+  if (!raw || raw === "-" || raw === "") return "";
+  return raw; // you can swap to a nicer format later if needed
+}
+
+function safe(v) {
+  return v || "";
 }
 </script>
 
