@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,16 +10,17 @@
       --bg: #0b1020;
       --card-bg: #161b2e;
       --card-border: #2b3558;
-      --hola-bg: #f7c948;
-      --hola-border: #c49b1f;
       --text: #f5f7ff;
       --muted: #9aa0c6;
       --accent: #4fd1c5;
       --line: #9aa0c6;
-      --loss: #c53030;
-      --win: #38a169;
-      --round-label: #e2e8f0;
+
+      /* HOLA improved contrast */
+      --hola-bg: #1a1a1a;
+      --hola-border: #f6d24a;
+      --hola-text: #f6d24a;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -29,27 +31,25 @@
       display: flex;
       justify-content: center;
     }
-    .bracket-shell {
-      width: 100%;
-      max-width: 1200px;
-      position: relative;
-    }
+
+    .bracket-shell { width: 100%; max-width: 1200px; position: relative; }
+
     .bracket-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 1rem;
     }
+
     .bracket-title {
       font-size: 1.4rem;
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    .division-label {
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
+
+    .division-label { font-size: 0.9rem; color: var(--muted); }
+
     .rounds-grid {
       display: grid;
       grid-auto-flow: column;
@@ -58,6 +58,7 @@
       position: relative;
       padding: 1rem 0 2rem;
     }
+
     .round-column {
       display: flex;
       flex-direction: column;
@@ -65,13 +66,15 @@
       gap: 1rem;
       position: relative;
     }
+
     .round-name {
       font-size: 0.9rem;
       font-weight: 600;
       text-transform: uppercase;
-      color: var(--round-label);
+      color: var(--muted);
       margin-bottom: 0.5rem;
     }
+
     .game-card {
       width: 100%;
       max-width: 260px;
@@ -81,11 +84,28 @@
       padding: 0.6rem 0.7rem;
       position: relative;
     }
+
+    /* HOLA improved contrast */
     .game-card.hola {
       background: var(--hola-bg);
-      border-color: var(--hola-border);
-      color: #1a202c;
+      border: 2px solid var(--hola-border);
+      color: var(--hola-text);
     }
+
+    .hola-tag {
+      position: absolute;
+      top: -0.55rem;
+      left: 0.7rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--hola-text);
+      color: var(--hola-bg);
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid var(--hola-border);
+    }
+
     .game-header {
       display: flex;
       justify-content: space-between;
@@ -94,14 +114,9 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
-    .game-header .id {
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .game-header .round-tag {
-      text-transform: uppercase;
-    }
+
+    .game-header .id { font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
     .team-row {
       display: flex;
       justify-content: space-between;
@@ -109,6 +124,7 @@
       font-size: 0.9rem;
       margin: 0.15rem 0;
     }
+
     .team-name {
       flex: 1;
       padding-right: 0.5rem;
@@ -116,16 +132,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .team-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.8rem;
-    }
-    .score {
-      min-width: 1.4rem;
-      text-align: right;
-    }
+
+    .team-meta { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; }
+
+    .score { min-width: 1.4rem; text-align: right; }
+
     .result-tag {
       padding: 0.05rem 0.35rem;
       border-radius: 999px;
@@ -133,8 +144,10 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .result-win { background: var(--win); color: #f0fff4; }
-    .result-loss { background: var(--loss); color: #fff5f5; }
+
+    .result-win { background: #38a169; color: #f0fff4; }
+    .result-loss { background: #c53030; color: #fff5f5; }
+
     .meta-row {
       margin-top: 0.4rem;
       font-size: 0.75rem;
@@ -143,34 +156,25 @@
       flex-wrap: wrap;
       gap: 0.35rem;
     }
+
     .meta-pill {
       padding: 0.1rem 0.4rem;
       border-radius: 999px;
       border: 1px solid rgba(154,160,198,0.4);
     }
-    .hola-tag {
-      position: absolute;
-      top: -0.55rem;
-      left: 0.7rem;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      background: #1a202c;
-      color: #f7c948;
-      padding: 0.1rem 0.4rem;
-      border-radius: 999px;
-      border: 1px solid #c49b1f;
-    }
+
     svg.bracket-lines {
       position: absolute;
       inset: 0;
       pointer-events: none;
       overflow: visible;
     }
+
     @media (max-width: 900px) {
       .rounds-grid { gap: 1.5rem; }
       .game-card { max-width: 220px; }
     }
+
     @media (max-width: 700px) {
       body { padding: 0.8rem; }
       .rounds-grid {
@@ -180,6 +184,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="bracket-shell">
     <div class="bracket-header">
@@ -189,9 +194,7 @@
 
     <svg class="bracket-lines"></svg>
 
-    <div class="rounds-grid" id="roundsGrid">
-      <!-- JS will inject rounds and games here -->
-    </div>
+    <div class="rounds-grid" id="roundsGrid"></div>
   </div>
 
   <script>
@@ -242,7 +245,6 @@
       grid.innerHTML = "";
       svg.innerHTML = "";
 
-      // group by round
       const byRound = new Map();
       games.forEach(g => {
         const r = normalizeRound(g.round);
@@ -251,18 +253,19 @@
       });
 
       const orderedRounds = Array.from(byRound.keys()).sort((a,b) => roundSortKey(a) - roundSortKey(b));
-
-      const cardPositions = new Map(); // matchId -> {x,y,width,height}
+      const cardPositions = new Map();
 
       orderedRounds.forEach((roundName, colIndex) => {
         const col = document.createElement("div");
         col.className = "round-column";
+
         const label = document.createElement("div");
         label.className = "round-name";
         label.textContent = roundName;
         col.appendChild(label);
 
         const roundGames = byRound.get(roundName);
+
         roundGames.forEach(game => {
           const card = document.createElement("div");
           card.className = "game-card";
@@ -271,84 +274,68 @@
 
           const header = document.createElement("div");
           header.className = "game-header";
-          const idSpan = document.createElement("span");
-          idSpan.className = "id";
-          idSpan.textContent = game.game || game.match || "";
-          const roundTag = document.createElement("span");
-          roundTag.className = "round-tag";
-          roundTag.textContent = normalizeRound(game.round);
-          header.appendChild(idSpan);
-          header.appendChild(roundTag);
+          header.innerHTML = `
+            <span class="id">${game.game}</span>
+            <span class="round-tag">${normalizeRound(game.round)}</span>
+          `;
           card.appendChild(header);
 
-          const tA = document.createElement("div");
-          tA.className = "team-row";
-          const tAName = document.createElement("div");
-          tAName.className = "team-name";
-          tAName.textContent = game.teamA || "TBD";
-          const tAMeta = document.createElement("div");
-          tAMeta.className = "team-meta";
-          const tAScore = document.createElement("span");
-          tAScore.className = "score";
-          tAScore.textContent = game.teamAScore ?? "";
-          const tAResult = document.createElement("span");
-          tAResult.className = "result-tag";
-          if (game.winner && game.teamA && game.winner === game.teamA) {
-            tAResult.classList.add("result-win");
-            tAResult.textContent = "WIN";
-          } else if (game.winner && game.teamA && game.winner !== game.teamA) {
-            tAResult.classList.add("result-loss");
-            tAResult.textContent = "LOSS";
-          } else {
-            tAResult.textContent = "";
-          }
-          tAMeta.appendChild(tAScore);
-          tAMeta.appendChild(tAResult);
-          tA.appendChild(tAName);
-          tA.appendChild(tAMeta);
-          card.appendChild(tA);
+          function makeTeamRow(name, score, isWinner) {
+            const row = document.createElement("div");
+            row.className = "team-row";
 
-          const tB = document.createElement("div");
-          tB.className = "team-row";
-          const tBName = document.createElement("div");
-          tBName.className = "team-name";
-          tBName.textContent = game.teamB || "TBD";
-          const tBMeta = document.createElement("div");
-          tBMeta.className = "team-meta";
-          const tBScore = document.createElement("span");
-          tBScore.className = "score";
-          tBScore.textContent = game.teamBScore ?? "";
-          const tBResult = document.createElement("span");
-          tBResult.className = "result-tag";
-          if (game.winner && game.teamB && game.winner === game.teamB) {
-            tBResult.classList.add("result-win");
-            tBResult.textContent = "WIN";
-          } else if (game.winner && game.teamB && game.winner !== game.teamB) {
-            tBResult.classList.add("result-loss");
-            tBResult.textContent = "LOSS";
-          } else {
-            tBResult.textContent = "";
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "team-name";
+            nameDiv.textContent = name || "TBD";
+
+            const meta = document.createElement("div");
+            meta.className = "team-meta";
+
+            const scoreSpan = document.createElement("span");
+            scoreSpan.className = "score";
+            scoreSpan.textContent = score ?? "";
+
+            const tag = document.createElement("span");
+            tag.className = "result-tag";
+            if (isWinner === true) {
+              tag.classList.add("result-win");
+              tag.textContent = "WIN";
+            } else if (isWinner === false) {
+              tag.classList.add("result-loss");
+              tag.textContent = "LOSS";
+            }
+
+            meta.appendChild(scoreSpan);
+            meta.appendChild(tag);
+
+            row.appendChild(nameDiv);
+            row.appendChild(meta);
+            return row;
           }
-          tBMeta.appendChild(tBScore);
-          tBMeta.appendChild(tBResult);
-          tB.appendChild(tBName);
-          tB.appendChild(tBMeta);
-          card.appendChild(tB);
+
+          const isWinnerA = game.winner && game.teamA && game.winner === game.teamA;
+          const isWinnerB = game.winner && game.teamB && game.winner === game.teamB;
+
+          card.appendChild(makeTeamRow(game.teamA, game.teamAScore, isWinnerA));
+          card.appendChild(makeTeamRow(game.teamB, game.teamBScore, isWinnerB));
 
           const metaRow = document.createElement("div");
           metaRow.className = "meta-row";
+
           if (game.town) {
             const pill = document.createElement("span");
             pill.className = "meta-pill";
             pill.textContent = game.town + (game.complex ? " – " + game.complex : "") + (game.field ? " – " + game.field : "");
             metaRow.appendChild(pill);
           }
-          if (game.date) {
+
+          if (game.date || game.time) {
             const pill = document.createElement("span");
             pill.className = "meta-pill";
-            pill.textContent = game.date + (game.time ? " • " + game.time : "");
+            pill.textContent = (game.date || "") + (game.time ? " • " + game.time : "");
             metaRow.appendChild(pill);
           }
+
           if (metaRow.childElementCount) card.appendChild(metaRow);
 
           if (isHola) {
@@ -360,11 +347,10 @@
 
           col.appendChild(card);
 
-          // store position later
           requestAnimationFrame(() => {
             const rect = card.getBoundingClientRect();
             const shellRect = document.querySelector(".bracket-shell").getBoundingClientRect();
-            cardPositions.set((game.game || game.match || "").toString(), {
+            cardPositions.set(game.game, {
               x: rect.left - shellRect.left + rect.width,
               y: rect.top - shellRect.top + rect.height / 2,
               w: rect.width,
@@ -377,13 +363,15 @@
         grid.appendChild(col);
       });
 
-      // after layout, draw connectors
       requestAnimationFrame(() => {
+        const svg = document.querySelector("svg.bracket-lines");
         const shellRect = document.querySelector(".bracket-shell").getBoundingClientRect();
+
         games.forEach(game => {
-          const fromId = (game.game || game.match || "").toString();
-          const toId = (game.nextMatch || game.next || "").toString();
+          const fromId = game.game;
+          const toId = game.nextMatch;
           if (!fromId || !toId) return;
+
           const fromPos = cardPositions.get(fromId);
           const toPos = cardPositions.get(toId);
           if (!fromPos || !toPos) return;
@@ -392,16 +380,11 @@
           const startY = fromPos.y;
           const endX = toPos.x - toPos.w;
           const endY = toPos.y;
-
           const midX = (startX + endX) / 2;
 
           const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          path.setAttribute("d",
-            `M ${startX} ${startY}
-             H ${midX}
-             V ${endY}
-             H ${endX}`);
-          path.setAttribute("stroke", getComputedStyle(document.documentElement).getPropertyValue("--line").trim() || "#9aa0c6");
+          path.setAttribute("d", `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`);
+          path.setAttribute("stroke", getComputedStyle(document.documentElement).getPropertyValue("--line").trim());
           path.setAttribute("stroke-width", "2");
           path.setAttribute("fill", "none");
           path.setAttribute("stroke-linecap", "round");
@@ -413,23 +396,30 @@
     (async function init() {
       const division = getDivisionFromQuery();
       document.getElementById("divisionLabel").textContent = division || "";
+
       if (!division) {
-        document.getElementById("roundsGrid").innerHTML = "<div style='color:#f56565;font-size:0.9rem;'>No division specified (?division=...).</div>";
+        document.getElementById("roundsGrid").innerHTML =
+          "<div style='color:#f56565;font-size:0.9rem;'>No division specified (?division=...).</div>";
         return;
       }
+
       try {
         const data = await loadDivisionData(division);
         const games = Array.isArray(data) ? data : (data.games || []);
         if (!games.length) {
-          document.getElementById("roundsGrid").innerHTML = "<div style='color:#f56565;font-size:0.9rem;'>No games found for this division.</div>";
+          document.getElementById("roundsGrid").innerHTML =
+            "<div style='color:#f56565;font-size:0.9rem;'>No games found for this division.</div>";
           return;
         }
         buildBracket(games);
       } catch (e) {
-        document.getElementById("roundsGrid").innerHTML = "<div style='color:#f56565;font-size:0.9rem;'>Error loading bracket.</div>";
+        document.getElementById("roundsGrid").innerHTML =
+          "<div style='color:#f56565;font-size:0.9rem;'>Error loading bracket.</div>";
         console.error(e);
       }
     })();
   </script>
 </body>
 </html>
+
+
