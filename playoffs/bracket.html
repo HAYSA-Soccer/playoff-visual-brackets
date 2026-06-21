@@ -59,24 +59,20 @@
       font-weight: bold;
     }
 
-    /* Horizontal connector line */
-    .connector {
-      width: 40px;
-      height: 2px;
-      background: #999;
-      position: absolute;
-      top: 50%;
-      right: -40px;
+    .feeds-from {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
     }
 
-    /* Mobile stacking */
+    .feeds-from span {
+      font-weight: bold;
+    }
+
     @media (max-width: 900px) {
       .bracket {
         flex-direction: column;
         align-items: center;
-      }
-      .connector {
-        display: none;
       }
     }
   </style>
@@ -87,9 +83,7 @@
 <div id="content">Loading bracket...</div>
 
 <script>
-// ------------------------------
 // 1. Read division from URL
-// ------------------------------
 const params = new URLSearchParams(window.location.search);
 const divisionCode = params.get("division");
 
@@ -98,14 +92,10 @@ if (!divisionCode) {
   throw new Error("Missing ?division= parameter");
 }
 
-// ------------------------------
-// 2. JSON API URL (YOUR REAL WEB APP URL)
-// ------------------------------
+// 2. JSON API URL
 const apiUrl = "https://script.google.com/macros/s/AKfycbwJuOUNgBRriM9c3JWZBAUcujOCl74Te7Zr7n0iWBdQ9cAd0K184VQxWLDNZ3_itPLYjw/exec";
 
-// ------------------------------
 // 3. Fetch JSON and render
-// ------------------------------
 fetch(apiUrl)
   .then(res => res.json())
   .then(data => {
@@ -115,16 +105,22 @@ fetch(apiUrl)
       return;
     }
 
-    // Group games by round
+    // Index games by ID and group by round
+    const gamesById = {};
     const rounds = { "QF": [], "SF": [], "Final": [] };
 
     division.games.forEach(game => {
+      gamesById[game.game] = game;
       if (rounds[game.round]) {
         rounds[game.round].push(game);
       }
     });
 
-    // Build HTML
+    // Helper: find feeder games for a given game ID
+    function findFeeders(targetId) {
+      return division.games.filter(g => g.next === targetId);
+    }
+
     let html = `
       <div class="division-title">${division.name}</div>
       <div class="bracket">
@@ -137,42 +133,30 @@ fetch(apiUrl)
       `;
       rounds["QF"].forEach(game => {
         const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-        html += `
-          <div class="game-box ${isHOLA ? "hola" : ""}">
-            ${renderGame(game)}
-            <div class="connector"></div>
-          </div>
-        `;
+        html += renderGameBox(game, isHOLA);
       });
       html += `</div>`;
     }
 
-    // Semifinals
+    // Semifinals (with feeders from QF)
     html += `<div class="round-column">
       <div class="round-title">Semifinals</div>
     `;
-    rounds["SF"].forEach(game => {
-      const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-      html += `
-        <div class="game-box ${isHOLA ? "hola" : ""}">
-          ${renderGame(game)}
-          <div class="connector"></div>
-        </div>
-      `;
+    rounds["SF"].forEach(sfGame => {
+      const isHOLA = sfGame.teamA.includes("HOLA") || sfGame.teamB.includes("HOLA");
+      const feeders = findFeeders(sfGame.game); // QFs that feed this SF
+      html += renderGameBox(sfGame, isHOLA, feeders);
     });
     html += `</div>`;
 
-    // Final
+    // Final (with feeders from SF)
     html += `<div class="round-column">
       <div class="round-title">Final</div>
     `;
-    rounds["Final"].forEach(game => {
-      const isHOLA = game.teamA.includes("HOLA") || game.teamB.includes("HOLA");
-      html += `
-        <div class="game-box ${isHOLA ? "hola" : ""}">
-          ${renderGame(game)}
-        </div>
-      `;
+    rounds["Final"].forEach(finalGame => {
+      const isHOLA = finalGame.teamA.includes("HOLA") || finalGame.teamB.includes("HOLA");
+      const feeders = findFeeders(finalGame.game); // SFs that feed this Final
+      html += renderGameBox(finalGame, isHOLA, feeders);
     });
     html += `</div></div>`; // end bracket
 
@@ -183,17 +167,24 @@ fetch(apiUrl)
     console.error(err);
   });
 
-// ------------------------------
-// 4. Game box renderer
-// ------------------------------
-function renderGame(game) {
+// 4. Render a single game box, with optional feeders
+function renderGameBox(game, isHOLA, feeders = []) {
+  const feederText = feeders.length
+    ? `<div class="feeds-from">
+         <span>Feeds from:</span> ${feeders.map(f => f.game).join(", ")}
+       </div>`
+    : "";
+
   return `
-    <div><span class="label">Game #:</span> ${game.game}</div>
-    <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
-    <div><span class="label">Date:</span> ${game.date}</div>
-    <div><span class="label">Time:</span> ${game.time}</div>
-    <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
-    <div><span class="label">Next:</span> ${game.next || "Final"}</div>
+    <div class="game-box ${isHOLA ? "hola" : ""}">
+      <div><span class="label">Game #:</span> ${game.game}</div>
+      <div><span class="label">Teams:</span> ${game.teamA} vs ${game.teamB}</div>
+      <div><span class="label">Date:</span> ${game.date}</div>
+      <div><span class="label">Time:</span> ${game.time}</div>
+      <div><span class="label">Location:</span> ${game.town} – ${game.complex} – ${game.field}</div>
+      <div><span class="label">Next:</span> ${game.next || "End of bracket"}</div>
+      ${feederText}
+    </div>
   `;
 }
 </script>
