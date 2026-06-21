@@ -31,7 +31,7 @@
     .bracket-grid {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: minmax(220px, 1fr);
+      grid-auto-columns: minmax(240px, 1fr);
       gap: 32px;
       align-items: start;
     }
@@ -115,10 +115,6 @@
       padding-top: 4px;
     }
 
-    .feeds-from span {
-      font-weight: 600;
-    }
-
     @media (max-width: 900px) {
       .bracket-grid {
         grid-auto-flow: row;
@@ -138,7 +134,7 @@ const divisionCode = params.get("division");
 if (!divisionCode) {
   document.getElementById("content").innerHTML = "No division specified.";
 } else {
-  const apiUrl = "https://script.google.com/macros/s/AKfycbwJuOUNgBRriM9c3JWZBAUcujOCl74Te7Zr7n0iWBdQ9cAd0K184VQxWLDNZ3_itPLYjw/exec";
+  const apiUrl = "YOUR_WEB_APP_URL_HERE";  // ← Replace with your Apps Script URL
 
   fetch(apiUrl)
     .then(res => res.json())
@@ -158,7 +154,6 @@ function renderBracket(data) {
 
   const games = division.games || [];
 
-  // Normalize rounds into an ordered set
   const roundOrder = ["Play-in", "QF", "SF", "Final"];
   const roundGroups = {};
   roundOrder.forEach(r => roundGroups[r] = []);
@@ -169,7 +164,6 @@ function renderBracket(data) {
     roundGroups[r].push(g);
   });
 
-  // Build feeders map: nextId -> [games that feed it]
   const feedersMap = {};
   games.forEach(g => {
     if (g.next) {
@@ -234,16 +228,13 @@ function renderGameBox(game, feeders) {
     (game.teamA && game.teamA.toUpperCase().includes("HOLA")) ||
     (game.teamB && game.teamB.toUpperCase().includes("HOLA"));
 
-  const dateText = formatDate(game.date);
+  const outcome = getOutcome(game);
+
+  const dateText = game.date || "";
   const timeText = game.time && game.time !== "-" ? game.time : "";
-  const town = game.town || "";
-  const complex = game.complex || "";
-  const field = game.field || "";
 
   const feedersText = feeders.length
-    ? `<div class="feeds-from">
-         <span>Feeds from:</span> ${feeders.map(f => f.game).join(", ")}
-       </div>`
+    ? `<div class="feeds-from"><strong>Feeds from:</strong> ${feeders.map(f => f.game).join(", ")}</div>`
     : "";
 
   if (isHOLA) {
@@ -251,37 +242,44 @@ function renderGameBox(game, feeders) {
       <div class="game-box hola">
         <div class="hola-tag">HOLA Match</div>
         <div class="game-id">Game ${game.game}</div>
-        <div class="teams-line">${safe(game.teamA)} vs ${safe(game.teamB)}</div>
-        <div class="date-line">
-          ${dateText}${timeText ? " • " + timeText : ""}
-        </div>
+        <div class="teams-line">${outcome}</div>
+        <div class="date-line">${dateText}${timeText ? " • " + timeText : ""}</div>
         <div class="details">
-          ${town || complex || field ? `<div><strong>Location:</strong> ${[town, complex, field].filter(Boolean).join(" – ")}</div>` : ""}
+          ${game.town || game.complex || game.field ? `<div><strong>Location:</strong> ${[game.town, game.complex, game.field].filter(Boolean).join(" – ")}</div>` : ""}
           ${game.round ? `<div><strong>Round:</strong> ${game.round}</div>` : ""}
-          ${game.next ? `<div><strong>Next:</strong> ${game.next}</div>` : `<div><strong>Next:</strong> End of bracket</div>`}
+          ${game.next ? `<div><strong>Next:</strong> ${game.next}</div>` : ""}
         </div>
-        ${feedersText}
-      </div>
-    `;
-  } else {
-    return `
-      <div class="game-box">
-        <div class="game-id">Game ${game.game}</div>
-        <div class="teams-line">${safe(game.teamA)} vs ${safe(game.teamB)}</div>
-        ${dateText ? `<div class="date-line">${dateText}</div>` : ""}
         ${feedersText}
       </div>
     `;
   }
+
+  return `
+    <div class="game-box">
+      <div class="game-id">Game ${game.game}</div>
+      <div class="teams-line">${outcome}</div>
+      ${dateText ? `<div class="date-line">${dateText}</div>` : ""}
+      ${feedersText}
+    </div>
+  `;
 }
 
-function formatDate(raw) {
-  if (!raw || raw === "-" || raw === "") return "";
-  return raw; // you can swap to a nicer format later if needed
-}
+function getOutcome(game) {
+  const A = game.teamA || "";
+  const B = game.teamB || "";
+  const sA = game.scoreA;
+  const sB = game.scoreB;
 
-function safe(v) {
-  return v || "";
+  if (sA !== "" && sB !== "" && !isNaN(sA) && !isNaN(sB)) {
+    return `${A} ${sA} – ${sB} ${B}`;
+  }
+
+  if (game.winner) {
+    if (game.winner === A) return `${A} — Win<br>${B} — Loss`;
+    if (game.winner === B) return `${A} — Loss<br>${B} — Win`;
+  }
+
+  return `${A || "Winner " + game.game} vs ${B || "Winner " + game.game}`;
 }
 </script>
 
