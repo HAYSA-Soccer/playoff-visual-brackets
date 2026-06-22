@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Dynamic Version with SVG Connectors + Winner Highlight + HAYSA Badge
+// HAYSA Bracket Engine — Dynamic Version with SVG Connectors + Winner Highlight + HAYSA Badge + Champion/Runner-Up
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -136,6 +136,11 @@ window.HAYSA_BRACKET_ENGINE = (function () {
         row.style.paddingLeft = "6px";
         row.style.background = "rgba(246,169,74,0.08)";
         row.style.borderRadius = "4px";
+
+        // Extra glow for final winner
+        if (isFinal) {
+          row.style.boxShadow = "0 0 12px rgba(246,169,74,0.6)";
+        }
       }
 
       row.appendChild(nameSpan);
@@ -304,6 +309,48 @@ window.HAYSA_BRACKET_ENGINE = (function () {
         connect(sfEl, finalEl);
       });
     });
+
+    // ⭐ CHAMPION + RUNNER-UP BOX ⭐
+    if (finalGames.length > 0) {
+      const final = finalGames[0];
+
+      const home = final.HomeTeam;
+      const away = final.AwayTeam;
+      const hs = Number(final.HomeScore);
+      const as = Number(final.AwayScore);
+
+      let champion = "";
+      let runnerUp = "";
+
+      if (hs > as) {
+        champion = home;
+        runnerUp = away;
+      } else {
+        champion = away;
+        runnerUp = home;
+      }
+
+      const champBox = document.createElement("div");
+      champBox.style.marginTop = "18px";
+      champBox.style.padding = "12px 16px";
+      champBox.style.borderRadius = "10px";
+      champBox.style.background = "rgba(246,169,74,0.12)";
+      champBox.style.border = `1px solid ${theme.gold}`;
+      champBox.style.textAlign = "center";
+      champBox.style.fontSize = "0.95rem";
+      champBox.style.lineHeight = "1.4";
+
+      champBox.innerHTML = `
+        <div style="font-weight:700; color:${theme.gold}; margin-bottom:4px;">
+          🏆 Champion: ${champion}
+        </div>
+        <div style="font-weight:600; color:${theme.text}; opacity:0.85;">
+          🥈 Runner-Up: ${runnerUp}
+        </div>
+      `;
+
+      container.appendChild(champBox);
+    }
   }
 
   // Export API
