@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Upgraded Visual Version with Winners + Connectors
+// HAYSA Bracket Engine — Dynamic Version with SVG Connectors + Winner Highlight + HAYSA Badge
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -146,19 +146,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     addTeamRow(game.HomeTeam, game.HomeScore);
     addTeamRow(game.AwayTeam, game.AwayScore);
 
-    // Winner arrow (advances)
-    if (game.NextMatch) {
-      const arrow = document.createElement("div");
-      arrow.textContent = "→";
-      arrow.style.position = "absolute";
-      arrow.style.right = "-12px";
-      arrow.style.top = "50%";
-      arrow.style.transform = "translateY(-50%)";
-      arrow.style.color = theme.orange;
-      arrow.style.fontWeight = "700";
-      card.appendChild(arrow);
-    }
-
     wrap.appendChild(card);
     return wrap;
   }
@@ -177,7 +164,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
   // Main render function
   function renderBracket(container, data, options) {
     const theme = options.theme || {};
-    const divisionCode = options.divisionCode || "";
 
     // Theme defaults
     theme.text = theme.text || "#F9FAFB";
@@ -196,9 +182,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     wrapper.style.gap = "20px";
     wrapper.style.alignItems = "stretch";
     wrapper.style.padding = "10px";
-    wrapper.style.backgroundImage =
-      "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px)";
-    wrapper.style.backgroundSize = "calc(100% / 3) 100%";
 
     const qfGames = data.QF || [];
     const sfGames = data.SF || [];
@@ -225,7 +208,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       .sort()
       .flatMap(key => sfByNext[key]);
 
-    // If no NextMatch mapping, fall back to original order
     const effectiveSF = orderedSF.length ? orderedSF : sfGames.slice();
 
     // Order QFs by the SF they feed into
@@ -243,12 +225,9 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     qfCol.style.display = "flex";
     qfCol.style.flexDirection = "column";
-    qfCol.style.gap = "12px";
 
     sfCol.style.display = "flex";
     sfCol.style.flexDirection = "column";
-    sfCol.style.gap = "40px";
-    sfCol.style.marginTop = "20px";
 
     finalCol.style.display = "flex";
     finalCol.style.flexDirection = "column";
