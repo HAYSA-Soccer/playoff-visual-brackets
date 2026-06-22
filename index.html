@@ -123,16 +123,12 @@
     }
 
     /* Horizontal connector lines between rounds */
-    .bracket-connector {
-      position: relative;
-    }
-    
-    .bracket-connector.qf::after {
+   .bracket-connector.qf::after {
       content: "";
       position: absolute;
       top: 50%;
-      right: -14px;
-      width: 14px;
+      right: -30px;
+      width: 30px;
       height: 2px;
       background: rgba(255,255,255,0.25);
     }
@@ -141,8 +137,8 @@
       content: "";
       position: absolute;
       top: 50%;
-      left: -14px;
-      width: 14px;
+      left: -30px;
+      width: 30px;
       height: 2px;
       background: rgba(255,255,255,0.25);
     }
@@ -151,11 +147,22 @@
       content: "";
       position: absolute;
       top: 50%;
-      right: -14px;
-      width: 14px;
+      right: -30px;
+      width: 30px;
       height: 2px;
       background: rgba(255,255,255,0.25);
     }
+    
+    .bracket-connector.final::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -30px;
+      width: 30px;
+      height: 2px;
+      background: rgba(255,255,255,0.25);
+    }
+
     
     .bracket-connector.final::before {
       content: "";
