@@ -122,60 +122,14 @@
       margin: 8px 0 12px;
     }
 
-    /* Horizontal connector lines between rounds */
-   .bracket-connector.qf::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: -30px;
-      width: 30px;
-      height: 2px;
-      background: rgba(255,255,255,0.25);
-    }
-    
-    .bracket-connector.sf::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: -30px;
-      width: 30px;
-      height: 2px;
-      background: rgba(255,255,255,0.25);
-    }
-    
-    .bracket-connector.sf::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: -30px;
-      width: 30px;
-      height: 2px;
-      background: rgba(255,255,255,0.25);
-    }
-    
+    /* REMOVE old pseudo-element connector lines (SVG now handles this) */
+    .bracket-connector.qf::after,
+    .bracket-connector.sf::before,
+    .bracket-connector.sf::after,
     .bracket-connector.final::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: -30px;
-      width: 30px;
-      height: 2px;
-      background: rgba(255,255,255,0.25);
+      content: none !important;
     }
 
-    
-    .bracket-connector.final::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: -14px;
-      width: 14px;
-      height: 2px;
-      background: rgba(255,255,255,0.25);
-    }
-    
-    
-        
     .back-to-top {
       font-size: 0.8rem;
       color: var(--hay-orange);
@@ -196,15 +150,26 @@
       padding: 10px 10px 14px;
     }
 
+    /* ⭐ STATIC gradient once loaded */
+    .bracket-container.loaded {
+      background: linear-gradient(
+        to bottom right,
+        rgba(27, 58, 138, 0.25),
+        rgba(244, 122, 32, 0.15)
+      );
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ⭐ SHIMMER ONLY WHILE LOADING */
     .skeleton {
       position: absolute;
       inset: 0;
       background: linear-gradient(
         120deg,
-        rgba(15, 30, 77, 0.95),
-        rgba(27, 58, 138, 0.95),
-        rgba(244, 122, 32, 0.18),
-        rgba(15, 30, 77, 0.95)
+        rgba(15, 30, 77, 0.85),
+        rgba(27, 58, 138, 0.85),
+        rgba(244, 122, 32, 0.25),
+        rgba(15, 30, 77, 0.85)
       );
       background-size: 200% 200%;
       animation: shimmer 1.4s ease-in-out infinite;
@@ -212,6 +177,11 @@
       flex-direction: column;
       gap: 8px;
       padding: 12px;
+    }
+
+    /* ⭐ Hide shimmer when JS adds .hidden */
+    .skeleton.hidden {
+      display: none;
     }
 
     @keyframes shimmer {
@@ -233,7 +203,8 @@
       .page-title { font-size: 1.4rem; }
       .bracket-container { min-height: 220px; }
     }
-  </style>
+</style>
+
 
   <script src="playoffs/bracket-engine.js" defer></script>
 
