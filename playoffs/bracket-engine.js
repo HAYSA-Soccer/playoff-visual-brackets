@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Full Drop‑In Rebuild
+// HAYSA Bracket Engine — Upgraded Visual Version
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -35,13 +35,22 @@ window.HAYSA_BRACKET_ENGINE = (function () {
   }
 
   // Create a single game card
-  function createGameCard(game, roundLabel, theme) {
+  function createGameCard(game, roundLabel, theme, isFinal) {
+    const wrap = document.createElement("div");
+    wrap.className = `bracket-connector ${roundLabel.toLowerCase()}`;
+
     const card = document.createElement("div");
     card.style.borderRadius = "10px";
     card.style.border = `1px solid ${theme.borderSoft}`;
     card.style.background = theme.cardBg;
     card.style.padding = "6px 8px";
     card.style.fontSize = "0.8rem";
+    card.style.position = "relative";
+
+    if (isFinal) {
+      card.style.borderWidth = "2px";
+      card.style.boxShadow = "0 0 12px rgba(244,122,32,0.4)";
+    }
 
     // Header
     const header = document.createElement("div");
@@ -105,7 +114,32 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     addTeamRow(game.HomeTeam, game.HomeScore);
     addTeamRow(game.AwayTeam, game.AwayScore);
 
-    return card;
+    // Winner arrow
+    if (game.NextMatch) {
+      const arrow = document.createElement("div");
+      arrow.textContent = "→";
+      arrow.style.position = "absolute";
+      arrow.style.right = "-12px";
+      arrow.style.top = "50%";
+      arrow.style.transform = "translateY(-50%)";
+      arrow.style.color = theme.orange;
+      arrow.style.fontWeight = "700";
+      card.appendChild(arrow);
+    }
+
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  // Add round labels
+  function addRoundLabel(col, text, theme) {
+    const lbl = document.createElement("div");
+    lbl.textContent = text;
+    lbl.style.textAlign = "center";
+    lbl.style.fontWeight = "700";
+    lbl.style.marginBottom = "6px";
+    lbl.style.color = theme.gold;
+    col.prepend(lbl);
   }
 
   // Main render function
@@ -118,9 +152,13 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     const wrapper = document.createElement("div");
     wrapper.style.display = "grid";
-    wrapper.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
-    wrapper.style.gap = "10px";
+    wrapper.style.gridTemplateColumns = "1fr 0.8fr 1fr";
+    wrapper.style.gap = "20px";
     wrapper.style.alignItems = "stretch";
+    wrapper.style.padding = "10px";
+    wrapper.style.backgroundImage =
+      "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px)";
+    wrapper.style.backgroundSize = "calc(100% / 3) 100%";
 
     const qfGames = data.QF || [];
     const sfGames = data.SF || [];
@@ -132,19 +170,25 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     qfCol.style.display = "flex";
     qfCol.style.flexDirection = "column";
-    qfCol.style.gap = "8px";
+    qfCol.style.gap = "12px";
 
     sfCol.style.display = "flex";
     sfCol.style.flexDirection = "column";
-    sfCol.style.gap = "12px";
+    sfCol.style.gap = "40px";
+    sfCol.style.marginTop = "20px";
 
     finalCol.style.display = "flex";
     finalCol.style.flexDirection = "column";
     finalCol.style.justifyContent = "center";
+    finalCol.style.alignItems = "center";
 
-    qfGames.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme)));
-    sfGames.forEach(g => sfCol.appendChild(createGameCard(g, "SF", theme)));
-    finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme)));
+    addRoundLabel(qfCol, "Quarterfinals", theme);
+    addRoundLabel(sfCol, "Semifinals", theme);
+    addRoundLabel(finalCol, "Final", theme);
+
+    qfGames.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme, false)));
+    sfGames.forEach(g => sfCol.appendChild(createGameCard(g, "SF", theme, false)));
+    finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme, true)));
 
     wrapper.appendChild(qfCol);
     wrapper.appendChild(sfCol);
