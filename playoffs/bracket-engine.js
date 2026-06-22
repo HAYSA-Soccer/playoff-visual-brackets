@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Fixed Vertical Alignment Version
+// HAYSA Bracket Engine — Fixed Connectors, Score Validation, and Color Version
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -58,7 +58,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     const round = document.createElement("span");
     round.textContent = roundLabel;
     round.style.fontWeight = "600";
-    round.style.color = theme.royal;
+    round.style.color = theme.gold; // 🔧 changed from theme.royal
 
     const meta = document.createElement("div");
     meta.style.display = "flex";
@@ -159,7 +159,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
   function centerColumn(col) {
     col.style.display = "flex";
     col.style.flexDirection = "column";
-    col.style.justifyContent = "center";   // center vertically
+    col.style.justifyContent = "center";
     col.style.gap = "16px";
   }
 
@@ -190,15 +190,17 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     const qfByNext = {};
     qfGames.forEach(g => {
       if (!g.NextMatch) return;
-      if (!qfByNext[g.NextMatch]) qfByNext[g.NextMatch] = [];
-      qfByNext[g.NextMatch].push(g);
+      const key = String(g.NextMatch).trim().toUpperCase(); // 🔧 normalize
+      if (!qfByNext[key]) qfByNext[key] = [];
+      qfByNext[key].push(g);
     });
 
     const sfByNext = {};
     sfGames.forEach(g => {
       if (!g.NextMatch) return;
-      if (!sfByNext[g.NextMatch]) sfByNext[g.NextMatch] = [];
-      sfByNext[g.NextMatch].push(g);
+      const key = String(g.NextMatch).trim().toUpperCase(); // 🔧 normalize
+      if (!sfByNext[key]) sfByNext[key] = [];
+      sfByNext[key].push(g);
     });
 
     const orderedSF = Object.keys(sfByNext)
@@ -209,7 +211,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     let orderedQF = [];
     if (orderedSF.length) {
-      orderedQF = orderedSF.flatMap(sf => qfByNext[sf.Match] || []);
+      orderedQF = orderedSF.flatMap(sf => qfByNext[String(sf.Match).trim().toUpperCase()] || []);
     }
     if (!orderedQF.length) {
       orderedQF = qfGames.slice();
@@ -235,106 +237,4 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     wrapper.appendChild(sfCol);
     wrapper.appendChild(finalCol);
 
-    container.appendChild(wrapper);
-
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "bracket-lines");
-    svg.style.position = "absolute";
-    svg.style.top = "0";
-    svg.style.left = "0";
-    svg.style.width = "100%";
-    svg.style.height = "100%";
-    svg.style.pointerEvents = "none";
-    container.appendChild(svg);
-
-    function connect(el1, el2) {
-      if (!el1 || !el2) return;
-
-      const r1 = el1.getBoundingClientRect();
-      const r2 = el2.getBoundingClientRect();
-      const c = container.getBoundingClientRect();
-
-      const x1 = r1.right - c.left;
-      const y1 = r1.top + r1.height / 2 - c.top;
-
-      const x2 = r2.left - c.left;
-      const y2 = r2.top + r2.height / 2 - c.top;
-
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", x1);
-      line.setAttribute("y1", y1);
-      line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
-      line.setAttribute("stroke", "rgba(255,255,255,0.25)");
-      line.setAttribute("stroke-width", "2");
-
-      svg.appendChild(line);
-    }
-
-    effectiveSF.forEach(sf => {
-      const sfMatch = sf.Match;
-      const sfEl = sfCol.querySelector(`[data-match="${sfMatch}"]`);
-      const qfs = qfByNext[sfMatch] || [];
-      qfs.forEach(qf => {
-        const qfEl = qfCol.querySelector(`[data-match="${qf.Match}"]`);
-        connect(qfEl, sfEl);
-      });
-    });
-
-    finalGames.forEach(final => {
-      const finalMatch = final.Match;
-      const finalEl = finalCol.querySelector(`[data-match="${finalMatch}"]`);
-      const sfs = sfByNext[finalMatch] || [];
-      sfs.forEach(sf => {
-        const sfEl = sfCol.querySelector(`[data-match="${sf.Match}"]`);
-        connect(sfEl, finalEl);
-      });
-    });
-
-    if (finalGames.length > 0) {
-      const final = finalGames[0];
-
-      const home = final.HomeTeam;
-      const away = final.AwayTeam;
-      const hs = Number(final.HomeScore);
-      const as = Number(final.AwayScore);
-
-      let champion = "";
-      let runnerUp = "";
-
-      if (hs > as) {
-        champion = home;
-        runnerUp = away;
-      } else {
-        champion = away;
-        runnerUp = home;
-      }
-
-      const champBox = document.createElement("div");
-      champBox.style.marginTop = "18px";
-      champBox.style.padding = "12px 16px";
-      champBox.style.borderRadius = "10px";
-      champBox.style.background = "rgba(246,169,74,0.12)";
-      champBox.style.border = `1px solid ${theme.gold}`;
-      champBox.style.textAlign = "center";
-      champBox.style.fontSize = "0.95rem";
-      champBox.style.lineHeight = "1.4";
-
-      champBox.innerHTML = `
-        <div style="font-weight:700; color:${theme.gold}; margin-bottom:4px;">
-          🏆 Champion: ${champion}
-        </div>
-        <div style="font-weight:600; color:${theme.text}; opacity:0.85;">
-          🥈 Runner-Up: ${runnerUp}
-        </div>
-      `;
-
-      container.appendChild(champBox);
-    }
-  }
-
-  return {
-    renderBracket
-  };
-
-})();
+    container.append
