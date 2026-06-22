@@ -96,6 +96,14 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       row.style.justifyContent = "space-between";
       row.style.margin = "2px 0";
 
+      // Determine winner
+      const isWinner =
+        (score !== "" && score !== undefined) &&
+        (
+          (Number(score) > Number(game.HomeScore) && name === game.AwayTeam) ||
+          (Number(score) > Number(game.AwayScore) && name === game.HomeTeam)
+        );
+
       const nameSpan = document.createElement("span");
       nameSpan.textContent = name || "";
       nameSpan.style.fontWeight = isHaysaTeam(name) ? "700" : "500";
@@ -120,6 +128,14 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       scoreSpan.textContent = score !== undefined && score !== "" ? score : "";
       scoreSpan.style.fontWeight = "600";
       scoreSpan.style.color = theme.gold;
+
+      // Winner highlight
+      if (isWinner) {
+        row.style.borderLeft = `4px solid ${theme.gold}`;
+        row.style.paddingLeft = "6px";
+        row.style.background = "rgba(246,169,74,0.08)";
+        row.style.borderRadius = "4px";
+      }
 
       row.appendChild(nameSpan);
       row.appendChild(scoreSpan);
