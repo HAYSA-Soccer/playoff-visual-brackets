@@ -1,16 +1,13 @@
-// HAYSA Bracket Engine — Original layout + SF centering + QF→QF connectors
+// HAYSA Bracket Engine — Fixed Vertical Alignment Version
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
-  // Identify HAYSA/HOLBROOK/AVON/HOLA teams
   function isHaysaTeam(name) {
     if (!name) return false;
     const n = name.toUpperCase();
-    const indicators = ["HOLA", "HOLBROOK", "AVON", "HAYSA", "HOLBROOK AVON", "(H)"];
-    return indicators.some(key => n.includes(key));
+    return n.includes("HOLA") || n.includes("HOLBROOK") || n.includes("HAYSA");
   }
 
-  // Format date/time safely
   function formatDateTime(dateStr, timeStr) {
     if (!dateStr || dateStr === "-" || dateStr === "") return "";
     try {
@@ -35,7 +32,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     }
   }
 
-  // Create a single game card
   function createGameCard(game, roundLabel, theme, isFinal) {
     const wrap = document.createElement("div");
     wrap.className = `bracket-connector ${roundLabel.toLowerCase()}`;
@@ -54,7 +50,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       card.style.boxShadow = "0 0 12px rgba(244,122,32,0.4)";
     }
 
-    // Header
     const header = document.createElement("div");
     header.style.display = "flex";
     header.style.justifyContent = "space-between";
@@ -91,7 +86,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     header.appendChild(meta);
     card.appendChild(header);
 
-    // Team rows
     function addTeamRow(name, score) {
       const row = document.createElement("div");
       row.style.display = "flex";
@@ -152,7 +146,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     return wrap;
   }
 
-  // Add round labels
   function addRoundLabel(col, text, theme) {
     const lbl = document.createElement("div");
     lbl.textContent = text;
@@ -163,7 +156,13 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     col.prepend(lbl);
   }
 
-  // Main render function
+  function centerColumn(col) {
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.justifyContent = "center";   // center vertically
+    col.style.gap = "16px";
+  }
+
   function renderBracket(container, data, options) {
     const theme = options.theme || {};
 
@@ -220,37 +219,16 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     const sfCol = document.createElement("div");
     const finalCol = document.createElement("div");
 
-    qfCol.style.display = "flex";
-    qfCol.style.flexDirection = "column";
-
-    sfCol.style.display = "flex";
-    sfCol.style.flexDirection = "column";
-
-    finalCol.style.display = "flex";
-    finalCol.style.flexDirection = "column";
-    finalCol.style.justifyContent = "center";
-    finalCol.style.alignItems = "center";
+    centerColumn(qfCol);
+    centerColumn(sfCol);
+    centerColumn(finalCol);
 
     addRoundLabel(qfCol, "Quarterfinals", theme);
     addRoundLabel(sfCol, "Semifinals", theme);
     addRoundLabel(finalCol, "Final", theme);
 
-    // QFs
     orderedQF.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme, false)));
-
-    // SFs with simple centering wrapper
-    effectiveSF.forEach(sf => {
-      const sfSlot = document.createElement("div");
-      sfSlot.style.display = "flex";
-      sfSlot.style.flexDirection = "column";
-      sfSlot.style.justifyContent = "center";
-      sfSlot.style.minHeight = "80px"; // keeps SF from shrinking
-
-      sfSlot.appendChild(createGameCard(sf, "SF", theme, false));
-      sfCol.appendChild(sfSlot);
-    });
-
-    // Finals
+    effectiveSF.forEach(g => sfCol.appendChild(createGameCard(g, "SF", theme, false)));
     finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme, true)));
 
     wrapper.appendChild(qfCol);
@@ -259,7 +237,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     container.appendChild(wrapper);
 
-    // SVG connectors
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "bracket-lines");
     svg.style.position = "absolute";
@@ -294,7 +271,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       svg.appendChild(line);
     }
 
-    // QF → SF
     effectiveSF.forEach(sf => {
       const sfMatch = sf.Match;
       const sfEl = sfCol.querySelector(`[data-match="${sfMatch}"]`);
@@ -305,7 +281,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       });
     });
 
-    // SF → Final
     finalGames.forEach(final => {
       const finalMatch = final.Match;
       const finalEl = finalCol.querySelector(`[data-match="${finalMatch}"]`);
@@ -316,18 +291,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       });
     });
 
-    // NEW: QF → QF connectors (same column)
-    qfGames.forEach(qfParent => {
-      const parentMatch = qfParent.Match;
-      const children = qfByNext[parentMatch] || [];
-      const parentEl = qfCol.querySelector(`[data-match="${parentMatch}"]`);
-      children.forEach(child => {
-        const childEl = qfCol.querySelector(`[data-match="${child.Match}"]`);
-        connect(parentEl, childEl);
-      });
-    });
-
-    // Champion + Runner-Up
     if (finalGames.length > 0) {
       const final = finalGames[0];
 
