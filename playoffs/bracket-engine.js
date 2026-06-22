@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Improved QF/SF/Final Grouping + H Indicator Fix
+// HAYSA Bracket Engine — Improved QF/SF/Final Grouping + Centering + QF→QF Support
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -230,9 +230,10 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     // 3. For each SF, find QFs feeding it
     let orderedQF = [];
-    effectiveSF.forEach(sf => {
+    const sfGroups = effectiveSF.map(sf => {
       const qfs = qfByNext[sf.Match] || [];
       orderedQF.push(...qfs);
+      return { sf, qfs };
     });
 
     // If no QFs exist, use raw QF list (4‑team division)
@@ -261,9 +262,24 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     if (effectiveSF.length) addRoundLabel(sfCol, "Semifinals", theme);
     addRoundLabel(finalCol, "Final", theme);
 
-    // Render cards
+    // Render QFs
     orderedQF.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme, false)));
-    effectiveSF.forEach(g => sfCol.appendChild(createGameCard(g, "SF", theme, false)));
+
+    // Render SFs with centering wrappers
+    sfGroups.forEach(group => {
+      const { sf, qfs } = group;
+
+      const sfSlot = document.createElement("div");
+      sfSlot.style.display = "flex";
+      sfSlot.style.flexDirection = "column";
+      sfSlot.style.justifyContent = "center";
+      sfSlot.style.minHeight = `${Math.max(qfs.length, 1) * 70}px`;
+
+      sfSlot.appendChild(createGameCard(sf, "SF", theme, false));
+      sfCol.appendChild(sfSlot);
+    });
+
+    // Render Final
     finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme, true)));
 
     // Append columns (hide empty ones)
@@ -309,10 +325,9 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     }
 
     // Connect QF → SF
-    effectiveSF.forEach(sf => {
-      const sfMatch = sf.Match;
-      const sfEl = sfCol.querySelector(`[data-match="${sfMatch}"]`);
-      const qfs = qfByNext[sfMatch] || [];
+    sfGroups.forEach(group => {
+      const { sf, qfs } = group;
+      const sfEl = sfCol.querySelector(`[data-match="${sf.Match}"]`);
       qfs.forEach(qf => {
         const qfEl = qfCol.querySelector(`[data-match="${qf.Match}"]`);
         connect(qfEl, sfEl);
@@ -327,6 +342,17 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       sfs.forEach(sf => {
         const sfEl = sfCol.querySelector(`[data-match="${sf.Match}"]`);
         connect(sfEl, finalEl);
+      });
+    });
+
+    // ⭐ NEW: QF → QF support
+    qfGames.forEach(qfParent => {
+      const parentMatch = qfParent.Match;
+      const children = qfByNext[parentMatch] || [];
+      const parentEl = qfCol.querySelector(`[data-match="${parentMatch}"]`);
+      children.forEach(child => {
+        const childEl = qfCol.querySelector(`[data-match="${child.Match}"]`);
+        connect(parentEl, childEl);
       });
     });
 
