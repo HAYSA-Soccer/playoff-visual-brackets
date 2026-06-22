@@ -2,7 +2,7 @@
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
-  // Highlight HAYSA/HOLA/HOLBROOK teams
+  // Identify HAYSA/HOLA/HOLBROOK teams
   function isHaysaTeam(name) {
     if (!name) return false;
     const n = name.toUpperCase();
@@ -99,7 +99,22 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       const nameSpan = document.createElement("span");
       nameSpan.textContent = name || "";
       nameSpan.style.fontWeight = isHaysaTeam(name) ? "700" : "500";
-      nameSpan.style.color = isHaysaTeam(name) ? theme.orange : theme.text;
+      nameSpan.style.color = theme.text;
+
+      // Add HAYSA/HOLA badge
+      if (isHaysaTeam(name)) {
+        const badge = document.createElement("span");
+        badge.textContent = "H";
+        badge.style.marginLeft = "6px";
+        badge.style.fontSize = "0.65rem";
+        badge.style.fontWeight = "700";
+        badge.style.color = theme.orange;
+        badge.style.border = `1px solid ${theme.orange}`;
+        badge.style.padding = "1px 4px";
+        badge.style.borderRadius = "4px";
+        badge.style.opacity = "0.9";
+        nameSpan.appendChild(badge);
+      }
 
       const scoreSpan = document.createElement("span");
       scoreSpan.textContent = score !== undefined && score !== "" ? score : "";
