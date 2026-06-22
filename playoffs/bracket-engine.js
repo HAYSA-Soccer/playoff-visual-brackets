@@ -2,11 +2,21 @@
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
-  // Identify HAYSA/HOLA/HOLBROOK teams
+  // Identify HAYSA/HOLBROOK/AVON/HOLA teams
   function isHaysaTeam(name) {
     if (!name) return false;
     const n = name.toUpperCase();
-    return n.includes("HOLA") || n.includes("HOLBROOK") || n.includes("HAYSA");
+
+    const indicators = [
+      "HOLA",
+      "HOLBROOK",
+      "AVON",
+      "HAYSA",
+      "HOLBROOK AVON",
+      "(H)"
+    ];
+
+    return indicators.some(key => n.includes(key));
   }
 
   // Format date/time safely
@@ -97,7 +107,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       row.style.justifyContent = "space-between";
       row.style.margin = "2px 0";
 
-      // Determine winner
       const isWinner =
         (score !== "" && score !== undefined && score !== null) &&
         (
@@ -110,7 +119,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       nameSpan.style.fontWeight = isHaysaTeam(name) ? "700" : "500";
       nameSpan.style.color = theme.text;
 
-      // Add HAYSA/HOLA badge
       if (isHaysaTeam(name)) {
         const badge = document.createElement("span");
         badge.textContent = "H";
@@ -130,14 +138,12 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       scoreSpan.style.fontWeight = "600";
       scoreSpan.style.color = theme.gold;
 
-      // Winner highlight
       if (isWinner) {
         row.style.borderLeft = `4px solid ${theme.gold}`;
         row.style.paddingLeft = "6px";
         row.style.background = "rgba(246,169,74,0.08)";
         row.style.borderRadius = "4px";
 
-        // Extra glow for final winner
         if (isFinal) {
           row.style.boxShadow = "0 0 12px rgba(246,169,74,0.6)";
         }
@@ -170,7 +176,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
   function renderBracket(container, data, options) {
     const theme = options.theme || {};
 
-    // Theme defaults
     theme.text = theme.text || "#F9FAFB";
     theme.borderSoft = theme.borderSoft || "#1F2937";
     theme.cardBg = theme.cardBg || "#111827";
@@ -192,7 +197,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     const sfGames = data.SF || [];
     const finalGames = data.FINAL || [];
 
-    // Group QFs by the SF they feed into
     const qfByNext = {};
     qfGames.forEach(g => {
       if (!g.NextMatch) return;
@@ -200,7 +204,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       qfByNext[g.NextMatch].push(g);
     });
 
-    // Group SFs by the FINAL they feed into
     const sfByNext = {};
     sfGames.forEach(g => {
       if (!g.NextMatch) return;
@@ -208,14 +211,12 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       sfByNext[g.NextMatch].push(g);
     });
 
-    // Order SFs by FINAL target
     const orderedSF = Object.keys(sfByNext)
       .sort()
       .flatMap(key => sfByNext[key]);
 
     const effectiveSF = orderedSF.length ? orderedSF : sfGames.slice();
 
-    // Order QFs by the SF they feed into
     let orderedQF = [];
     if (orderedSF.length) {
       orderedQF = orderedSF.flatMap(sf => qfByNext[sf.Match] || []);
@@ -253,7 +254,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     container.appendChild(wrapper);
 
-    // SVG overlay for connection lines
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "bracket-lines");
     svg.style.position = "absolute";
@@ -288,7 +288,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       svg.appendChild(line);
     }
 
-    // Connect QF → SF
     effectiveSF.forEach(sf => {
       const sfMatch = sf.Match;
       const sfEl = sfCol.querySelector(`[data-match="${sfMatch}"]`);
@@ -299,7 +298,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       });
     });
 
-    // Connect SF → FINAL
     finalGames.forEach(final => {
       const finalMatch = final.Match;
       const finalEl = finalCol.querySelector(`[data-match="${finalMatch}"]`);
@@ -353,7 +351,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     }
   }
 
-  // Export API
   return {
     renderBracket
   };
