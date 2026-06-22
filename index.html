@@ -122,6 +122,53 @@
       margin: 8px 0 12px;
     }
 
+    /* Horizontal connector lines between rounds */
+    .bracket-connector {
+      position: relative;
+    }
+    
+    .bracket-connector.qf::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -14px;
+      width: 14px;
+      height: 2px;
+      background: rgba(255,255,255,0.25);
+    }
+    
+    .bracket-connector.sf::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -14px;
+      width: 14px;
+      height: 2px;
+      background: rgba(255,255,255,0.25);
+    }
+    
+    .bracket-connector.sf::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -14px;
+      width: 14px;
+      height: 2px;
+      background: rgba(255,255,255,0.25);
+    }
+    
+    .bracket-connector.final::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -14px;
+      width: 14px;
+      height: 2px;
+      background: rgba(255,255,255,0.25);
+    }
+    
+    
+        
     .back-to-top {
       font-size: 0.8rem;
       color: var(--hay-orange);
