@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Dynamic Version with SVG Connectors + Winner Highlight + HAYSA Badge + Champion/Runner-Up
+// HAYSA Bracket Engine — Improved QF/SF/Final Grouping + H Indicator Fix
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -211,20 +211,36 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       sfByNext[g.NextMatch].push(g);
     });
 
-    const orderedSF = Object.keys(sfByNext)
-      .sort()
-      .flatMap(key => sfByNext[key]);
+    // ⭐ TRUE BRACKET GROUPING ⭐
 
-    const effectiveSF = orderedSF.length ? orderedSF : sfGames.slice();
+    // 1. Identify the single Final
+    const final = finalGames[0];
+    const finalMatch = final ? final.Match : null;
 
-    let orderedQF = [];
-    if (orderedSF.length) {
-      orderedQF = orderedSF.flatMap(sf => qfByNext[sf.Match] || []);
+    // 2. Find all SFs feeding the Final
+    let effectiveSF = [];
+    if (finalMatch) {
+      effectiveSF = sfByNext[finalMatch] || [];
     }
+
+    // If no SFs exist, use raw SF list (2‑team division)
+    if (!effectiveSF.length) {
+      effectiveSF = sfGames.slice();
+    }
+
+    // 3. For each SF, find QFs feeding it
+    let orderedQF = [];
+    effectiveSF.forEach(sf => {
+      const qfs = qfByNext[sf.Match] || [];
+      orderedQF.push(...qfs);
+    });
+
+    // If no QFs exist, use raw QF list (4‑team division)
     if (!orderedQF.length) {
       orderedQF = qfGames.slice();
     }
 
+    // Build columns
     const qfCol = document.createElement("div");
     const sfCol = document.createElement("div");
     const finalCol = document.createElement("div");
@@ -240,20 +256,24 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     finalCol.style.justifyContent = "center";
     finalCol.style.alignItems = "center";
 
-    addRoundLabel(qfCol, "Quarterfinals", theme);
-    addRoundLabel(sfCol, "Semifinals", theme);
+    // Add labels
+    if (orderedQF.length) addRoundLabel(qfCol, "Quarterfinals", theme);
+    if (effectiveSF.length) addRoundLabel(sfCol, "Semifinals", theme);
     addRoundLabel(finalCol, "Final", theme);
 
+    // Render cards
     orderedQF.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme, false)));
     effectiveSF.forEach(g => sfCol.appendChild(createGameCard(g, "SF", theme, false)));
     finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme, true)));
 
-    wrapper.appendChild(qfCol);
-    wrapper.appendChild(sfCol);
+    // Append columns (hide empty ones)
+    if (orderedQF.length) wrapper.appendChild(qfCol);
+    if (effectiveSF.length) wrapper.appendChild(sfCol);
     wrapper.appendChild(finalCol);
 
     container.appendChild(wrapper);
 
+    // SVG connectors
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "bracket-lines");
     svg.style.position = "absolute";
@@ -288,6 +308,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       svg.appendChild(line);
     }
 
+    // Connect QF → SF
     effectiveSF.forEach(sf => {
       const sfMatch = sf.Match;
       const sfEl = sfCol.querySelector(`[data-match="${sfMatch}"]`);
@@ -298,6 +319,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       });
     });
 
+    // Connect SF → Final
     finalGames.forEach(final => {
       const finalMatch = final.Match;
       const finalEl = finalCol.querySelector(`[data-match="${finalMatch}"]`);
