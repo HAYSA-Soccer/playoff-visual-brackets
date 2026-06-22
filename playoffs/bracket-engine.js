@@ -1,4 +1,4 @@
-// HAYSA Bracket Engine — Improved QF/SF/Final Grouping + Centering + QF→QF Support
+// HAYSA Bracket Engine — Supports QF→QF Chains + QF+QF→SF Forks + Correct Centering + Correct Connectors
 
 window.HAYSA_BRACKET_ENGINE = (function () {
 
@@ -6,16 +6,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
   function isHaysaTeam(name) {
     if (!name) return false;
     const n = name.toUpperCase();
-
-    const indicators = [
-      "HOLA",
-      "HOLBROOK",
-      "AVON",
-      "HAYSA",
-      "HOLBROOK AVON",
-      "(H)"
-    ];
-
+    const indicators = ["HOLA", "HOLBROOK", "AVON", "HAYSA", "HOLBROOK AVON", "(H)"];
     return indicators.some(key => n.includes(key));
   }
 
@@ -24,18 +15,12 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     if (!dateStr || dateStr === "-" || dateStr === "") return "";
     try {
       const d = new Date(dateStr);
-      let datePart = d.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric"
-      });
+      let datePart = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
       let timePart = "";
       if (timeStr && timeStr !== "-" && timeStr !== "") {
         const t = new Date(timeStr);
-        timePart = t.toLocaleTimeString(undefined, {
-          hour: "numeric",
-          minute: "2-digit"
-        });
+        timePart = t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
       }
 
       return timePart ? `${datePart} @ ${timePart}` : datePart;
@@ -172,6 +157,20 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     col.prepend(lbl);
   }
 
+  // Recursively collect chain matches
+  function collectChain(startMatch, qfByNext) {
+    const chain = [];
+    let current = startMatch;
+
+    while (qfByNext[current] && qfByNext[current].length === 1) {
+      const nextQF = qfByNext[current][0];
+      chain.push(nextQF);
+      current = nextQF.Match;
+    }
+
+    return chain;
+  }
+
   // Main render function
   function renderBracket(container, data, options) {
     const theme = options.theme || {};
@@ -211,35 +210,31 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       sfByNext[g.NextMatch].push(g);
     });
 
-    // ⭐ TRUE BRACKET GROUPING ⭐
-
-    // 1. Identify the single Final
+    // Identify the Final
     const final = finalGames[0];
     const finalMatch = final ? final.Match : null;
 
-    // 2. Find all SFs feeding the Final
-    let effectiveSF = [];
-    if (finalMatch) {
-      effectiveSF = sfByNext[finalMatch] || [];
-    }
+    // Identify SFs feeding the Final
+    let effectiveSF = finalMatch ? (sfByNext[finalMatch] || []) : [];
+    if (!effectiveSF.length) effectiveSF = sfGames.slice();
 
-    // If no SFs exist, use raw SF list (2‑team division)
-    if (!effectiveSF.length) {
-      effectiveSF = sfGames.slice();
-    }
+    // Build QF structures
+    const qfStructures = [];
 
-    // 3. For each SF, find QFs feeding it
-    let orderedQF = [];
-    const sfGroups = effectiveSF.map(sf => {
-      const qfs = qfByNext[sf.Match] || [];
-      orderedQF.push(...qfs);
-      return { sf, qfs };
+    effectiveSF.forEach(sf => {
+      const sfMatch = sf.Match;
+      const directQFs = qfByNext[sfMatch] || [];
+
+      if (directQFs.length === 1) {
+        // CHAIN CASE
+        const chainStart = directQFs[0];
+        const chain = [chainStart, ...collectChain(chainStart.Match, qfByNext)];
+        qfStructures.push({ type: "chain", chain, sf });
+      } else if (directQFs.length > 1) {
+        // FORK CASE
+        qfStructures.push({ type: "fork", qfs: directQFs, sf });
+      }
     });
-
-    // If no QFs exist, use raw QF list (4‑team division)
-    if (!orderedQF.length) {
-      orderedQF = qfGames.slice();
-    }
 
     // Build columns
     const qfCol = document.createElement("div");
@@ -248,50 +243,74 @@ window.HAYSA_BRACKET_ENGINE = (function () {
 
     qfCol.style.display = "flex";
     qfCol.style.flexDirection = "column";
+    qfCol.style.gap = "20px";
 
     sfCol.style.display = "flex";
     sfCol.style.flexDirection = "column";
+    sfCol.style.gap = "20px";
 
     finalCol.style.display = "flex";
     finalCol.style.flexDirection = "column";
     finalCol.style.justifyContent = "center";
     finalCol.style.alignItems = "center";
 
-    // Add labels
-    if (orderedQF.length) addRoundLabel(qfCol, "Quarterfinals", theme);
-    if (effectiveSF.length) addRoundLabel(sfCol, "Semifinals", theme);
+    addRoundLabel(qfCol, "Quarterfinals", theme);
+    addRoundLabel(sfCol, "Semifinals", theme);
     addRoundLabel(finalCol, "Final", theme);
 
-    // Render QFs
-    orderedQF.forEach(g => qfCol.appendChild(createGameCard(g, "QF", theme, false)));
+    // Render QF structures
+    qfStructures.forEach(struct => {
+      if (struct.type === "chain") {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.flexDirection = "row";
+        row.style.gap = "20px";
 
-    // Render SFs with centering wrappers
-    sfGroups.forEach(group => {
-      const { sf, qfs } = group;
+        struct.chain.forEach(qf => {
+          row.appendChild(createGameCard(qf, "QF", theme, false));
+        });
 
-      const sfSlot = document.createElement("div");
-      sfSlot.style.display = "flex";
-      sfSlot.style.flexDirection = "column";
-      sfSlot.style.justifyContent = "center";
-      sfSlot.style.minHeight = `${Math.max(qfs.length, 1) * 70}px`;
+        qfCol.appendChild(row);
 
-      sfSlot.appendChild(createGameCard(sf, "SF", theme, false));
-      sfCol.appendChild(sfSlot);
+        // Render SF
+        const sfCard = createGameCard(struct.sf, "SF", theme, false);
+        sfCol.appendChild(sfCard);
+
+      } else if (struct.type === "fork") {
+        const forkWrapper = document.createElement("div");
+        forkWrapper.style.display = "flex";
+        forkWrapper.style.flexDirection = "column";
+        forkWrapper.style.gap = "20px";
+
+        struct.qfs.forEach(qf => {
+          forkWrapper.appendChild(createGameCard(qf, "QF", theme, false));
+        });
+
+        qfCol.appendChild(forkWrapper);
+
+        // Center SF
+        const sfSlot = document.createElement("div");
+        sfSlot.style.display = "flex";
+        sfSlot.style.flexDirection = "column";
+        sfSlot.style.justifyContent = "center";
+        sfSlot.style.minHeight = `${struct.qfs.length * 70}px`;
+
+        sfSlot.appendChild(createGameCard(struct.sf, "SF", theme, false));
+        sfCol.appendChild(sfSlot);
+      }
     });
 
     // Render Final
     finalGames.forEach(g => finalCol.appendChild(createGameCard(g, "FINAL", theme, true)));
 
-    // Append columns (hide empty ones)
-    if (orderedQF.length) wrapper.appendChild(qfCol);
-    if (effectiveSF.length) wrapper.appendChild(sfCol);
+    wrapper.appendChild(qfCol);
+    wrapper.appendChild(sfCol);
     wrapper.appendChild(finalCol);
 
     container.appendChild(wrapper);
 
     // SVG connectors
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "bracket-lines");
     svg.style.position = "absolute";
     svg.style.top = "0";
     svg.style.left = "0";
@@ -300,7 +319,7 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     svg.style.pointerEvents = "none";
     container.appendChild(svg);
 
-    function connect(el1, el2) {
+    function connect(el1, el2, straight = false) {
       if (!el1 || !el2) return;
 
       const r1 = el1.getBoundingClientRect();
@@ -317,49 +336,53 @@ window.HAYSA_BRACKET_ENGINE = (function () {
       line.setAttribute("x1", x1);
       line.setAttribute("y1", y1);
       line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
+      line.setAttribute("y2", straight ? y1 : y2);
       line.setAttribute("stroke", "rgba(255,255,255,0.25)");
       line.setAttribute("stroke-width", "2");
 
       svg.appendChild(line);
     }
 
-    // Connect QF → SF
-    sfGroups.forEach(group => {
-      const { sf, qfs } = group;
-      const sfEl = sfCol.querySelector(`[data-match="${sf.Match}"]`);
-      qfs.forEach(qf => {
-        const qfEl = qfCol.querySelector(`[data-match="${qf.Match}"]`);
-        connect(qfEl, sfEl);
-      });
+    // Draw connectors
+    qfStructures.forEach(struct => {
+      if (struct.type === "chain") {
+        const chain = struct.chain;
+
+        // QF → QF straight connectors
+        for (let i = 0; i < chain.length - 1; i++) {
+          const el1 = qfCol.querySelector(`[data-match="${chain[i].Match}"]`);
+          const el2 = qfCol.querySelector(`[data-match="${chain[i + 1].Match}"]`);
+          connect(el1, el2, true);
+        }
+
+        // Last QF → SF
+        const lastQF = chain[chain.length - 1];
+        const qfEl = qfCol.querySelector(`[data-match="${lastQF.Match}"]`);
+        const sfEl = sfCol.querySelector(`[data-match="${struct.sf.Match}"]`);
+        connect(qfEl, sfEl, true);
+
+      } else if (struct.type === "fork") {
+        struct.qfs.forEach(qf => {
+          const qfEl = qfCol.querySelector(`[data-match="${qf.Match}"]`);
+          const sfEl = sfCol.querySelector(`[data-match="${struct.sf.Match}"]`);
+          connect(qfEl, sfEl, false);
+        });
+      }
     });
 
-    // Connect SF → Final
+    // SF → Final
     finalGames.forEach(final => {
-      const finalMatch = final.Match;
-      const finalEl = finalCol.querySelector(`[data-match="${finalMatch}"]`);
-      const sfs = sfByNext[finalMatch] || [];
+      const finalEl = finalCol.querySelector(`[data-match="${final.Match}"]`);
+      const sfs = sfByNext[final.Match] || [];
       sfs.forEach(sf => {
         const sfEl = sfCol.querySelector(`[data-match="${sf.Match}"]`);
-        connect(sfEl, finalEl);
+        connect(sfEl, finalEl, true);
       });
     });
 
-    // ⭐ NEW: QF → QF support
-    qfGames.forEach(qfParent => {
-      const parentMatch = qfParent.Match;
-      const children = qfByNext[parentMatch] || [];
-      const parentEl = qfCol.querySelector(`[data-match="${parentMatch}"]`);
-      children.forEach(child => {
-        const childEl = qfCol.querySelector(`[data-match="${child.Match}"]`);
-        connect(parentEl, childEl);
-      });
-    });
-
-    // ⭐ CHAMPION + RUNNER-UP BOX ⭐
+    // Champion box
     if (finalGames.length > 0) {
       const final = finalGames[0];
-
       const home = final.HomeTeam;
       const away = final.AwayTeam;
       const hs = Number(final.HomeScore);
@@ -399,8 +422,6 @@ window.HAYSA_BRACKET_ENGINE = (function () {
     }
   }
 
-  return {
-    renderBracket
-  };
+  return { renderBracket };
 
 })();
